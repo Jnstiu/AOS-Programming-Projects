@@ -1,0 +1,45 @@
+import schedule
+import time
+import requests
+import multiprocessing
+
+Uniform_Resource_Locator="http://api.coindesk.com/v1/bpi/currentprice.json"
+data=requests.get(Uniform_Resource_Locator)
+input=data.json()
+def fetch_bitcoin():
+   print("Getting Bitcoin Price")
+   result = input['bpi']['USD']
+   print(result)
+def fetch_bitcoin_by_currency(x):
+   print("Fetching bitcoin price: ",x)
+   result=input['bpi'][x]
+   print(result)
+#time
+schedule.every(5).seconds.do(fetch_bitcoin)
+schedule.every(10).seconds.do(fetch_bitcoin_by_currency,'EUR')
+while True:
+   schedule.run_pending()
+   time.sleep(2)
+
+if __name__ == '__main__':
+  with multiprocessing.Manager() as manager:
+		# creating a list in server process memory
+    x = manager.list(['USD', 'EUR'])
+		# new record to be inserted in records
+    new_x = 'GBP'
+	
+    # creating new processes
+    p1 = multiprocessing.Process(target=fetch_bitcoin)
+    p2 = multiprocessing.Process(target=fetch_bitcoin_by_currency, args=(x))
+    p3 = multiprocessing.Process(target=fetch_bitcoin_by_currency, args=(new_x))
+		# running process p1 to fetch bitcoin in USD
+    p1.start()
+    p1.join()
+
+		# running process p2 to fetch bitcoin in EUR
+    p2.start()
+    p2.join()
+
+		#running process p3 to fetch bitcoin in GBP
+    p3.start(schedule.every(20).seconds.do(fetch_bitcoin_by_currency,new_x))
+    p3.join()
