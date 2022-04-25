@@ -1,0 +1,33 @@
+import multiprocessing
+
+numberProcesses = 10
+def do_task(message):
+  print("task",message ,"completed")
+
+def employee():
+  for item in iter(q.get, None):
+    do_task(item)
+    q.task_done()
+  q.task_done()
+
+q = multiprocessing.JoinableQueue()
+processes = []
+for i in range(numberProcesses):
+  processes.append(multiprocessing.Process(target=employee))
+  processes[-1].daemon = True
+  processes[-1].start()
+
+taskNumber = ['1','2','3','4','5','6','7','8','9','10','11','12']
+for item in taskNumber:
+  q.put(item)
+q.join()
+
+for p in processes:
+  q.put(None)
+q.join()
+
+for p in processes:
+  p.join()
+
+print("All tasks completed")
+print("Active children:", multiprocessing.active_children())
